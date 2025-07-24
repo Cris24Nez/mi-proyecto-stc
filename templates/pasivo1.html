@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>MediaPipe - Mano y Flexión</title>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+  <style>
+    body { background: white; text-align: center; font-family: sans-serif; }
+    canvas { border: 1px solid gray; }
+    .barra-container {
+      width: 640px;
+      margin: auto;
+      text-align: left;
+    }
+    .barra {
+      margin: 5px 0;
+    }
+    .barra label {
+      font-weight: bold;
+    }
+    progress {
+      width: 100%;
+      height: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Visualización en Tiempo Real - Mano y Flexión de Dedos</h2>
+  <video id="videoInput" autoplay muted playsinline style="display: none;"></video>
+  <canvas id="canvasOutput" width="640" height="480"></canvas>
+
+  <div class="barra-container">
+    <div class="barra"><label>Pulgar</label> <progress id="pulgar" max="100" value="0"></progress> <span id="valPulgar">0%</span></div>
+    <div class="barra"><label>Índice</label> <progress id="indice" max="100" value="0"></progress> <span id="valIndice">0%</span></div>
+    <div class="barra"><label>Medio</label> <progress id="medio" max="100" value="0"></progress> <span id="valMedio">0%</span></div>
+    <div class="barra"><label>Anular</label> <progress id="anular" max="100" value="0"></progress> <span id="valAnular">0%</span></div>
+    <div class="barra"><label>Meñique</label> <progress id="menique" max="100" value="0"></progress> <span id="valMenique">0%</span></div>
+  </div>
+
+  <script>
+    const videoElement = document.getElementById('videoInput');
+    const canvasElement = document.getElementById('canvasOutput');
+    const canvasCtx = canvasElement.getContext('2d');
+
+    const MAX_PASOS = 180;
+
+    function calcular_flexion(punta, base) {
+      return Math.abs(punta.y - base.y); // flexión relativa
+    }
+
+    function flexion_a_porcentaje(valor) {
+      return Math.min(100, Math.max(0, Math.round(valor * 400))); // ajustar sensibilidad
+    }
+
+    const hands = new Hands({
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+    });
+
+    hands.setOptions({
+      maxNumHands: 1,
+      modelComplexity: 1,
+      minDetectionConfidence: 0.7,
+      minTrackingConfidence: 0.7
+    });
+
+    hands.onResults((results) => {
+      canvasCtx.save();
+      canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+      canvasCtx.fillStyle = "white";
+      canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
+
+      if (results.multiHandLandmarks) {
+        const puntos = results.multiHandLandmarks[0];
+
+        drawConnectors(canvasCtx, puntos, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 2 });
+        drawLandmarks(canvasCtx, puntos, { color: '#FF0000', lineWidth: 2 });
+
+        // Flexión de cada dedo
+        const f_pulgar  = calcular_flexion(puntos[4],  puntos[2]);
+        const f_indice  = calcular_flexion(puntos[8],  puntos[5]);
+        const f_medio   = calcular_flexion(puntos[12], puntos[9]);
+        const f_anular  = calcular_flexion(puntos[16], puntos[13]);
+        const f_menique = calcular_flexion(puntos[20], puntos[17]);
+
+        const percPulgar  = flexion_a_porcentaje(f_pulgar);
+        const percIndice  = flexion_a_porcentaje(f_indice);
+        const percMedio   = flexion_a_porcentaje(f_medio);
+        const percAnular  = flexion_a_porcentaje(f_anular);
+        const percMenique = flexion_a_porcentaje(f_menique);
+
+        document.getElementById("pulgar").value  = percPulgar;
+        document.getElementById("indice").value  = percIndice;
+        document.getElementById("medio").value   = percMedio;
+        document.getElementById("anular").value  = percAnular;
+        document.getElementById("menique").value = percMenique;
+
+        document.getElementById("valPulgar").innerText  = percPulgar + "%";
+        document.getElementById("valIndice").innerText  = percIndice + "%";
+        document.getElementById("valMedio").innerText   = percMedio + "%";
+        document.getElementById("valAnular").innerText  = percAnular + "%";
+        document.getElementById("valMenique").innerText = percMenique + "%";
+      }
+
+      canvasCtx.restore();
+    });
+
+    const camera = new Camera(videoElement, {
+      onFrame: async () => {
+        await hands.send({ image: videoElement });
+      },
+      width: 640,
+      height: 480
+    });
+
+    camera.start();
+  </script>
+</body>
+</html>

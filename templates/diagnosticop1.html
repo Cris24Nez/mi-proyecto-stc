@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Diagnóstico Práctico #1 - Elevación de Dedos</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- MQTT.js -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+  <style>
+    body {
+      padding: 40px;
+      font-family: 'Roboto', sans-serif;
+      background-image: url('/static/img/imgd1.jpg');
+      background-size: cover;
+      background-color: rgba(255, 255, 255, 0.6);
+      background-blend-mode: lighten;
+    }
+    .dedos-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: left;
+    }
+    .dedo-section {
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 10px;
+      width: 250px;
+      background-color: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    button[type="button"] {
+      background-color: #6f42c1;
+      color: white;
+    }
+    button[type="button"]:hover {
+      background-color: #5a379f;
+    }
+    .volver-link {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Enlace Volver -->
+  <div class="volver-link">
+    <a href="{{ url_for('opcion') }}" class="btn btn-outline-secondary">← Volver</a>
+  </div>
+
+  <h2><strong>Diagnóstico Práctico #1: Elevación Dedo por Dedo</strong></h2>
+  <p><strong>Instrucción:</strong> Presione “Elevar” para evaluar el movimiento del dedo. Luego, complete el nivel de dolor y limitación.</p>
+
+  <form id="formulario-diagnostico">
+    <!-- Selector de paciente -->
+    <div class="mb-3">
+      <label for="paciente-select" class="form-label">ID paciente:</label>
+      <select id="paciente-select" class="form-select" required>
+        {% for paciente in pacientes %}
+          <option value="{{ paciente[0] }}">{{ paciente[1] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Contenedor para dedos -->
+    <div id="dedos-container" class="dedos-grid">
+      <!-- Dedos se generan aquí -->
+    </div>
+  </form>
+
+  <div class="mt-4 text-center">
+    <button type="button" class="btn btn-success" onclick="enviarDatos()">Enviar Datos</button>
+  </div>
+
+  <script>
+    const dedos = [
+      { nombre: "Pulgar", ruta: "pulgar" },
+      { nombre: "Índice", ruta: "indice" },
+      { nombre: "Medio", ruta: "medio" },
+      { nombre: "Anular", ruta: "anular" },
+      { nombre: "Meñique", ruta: "menique" }
+    ];
+
+    const container = document.getElementById('dedos-container');
+
+    // ========= CONEXIÓN MQTT =========
+    const options = {
+      clean: true,
+      connectTimeout: 4000,
+      clientId: 'webClient_' + Math.random().toString(16).substr(2, 8),
+      username: 'Chris',
+      password: 'HiveMq25proy.',
+      reconnectPeriod: 1000,
+    };
+
+    const client = mqtt.connect('wss://1e4496b59d6543c6b38d74b2c55cb32d.s1.eu.hivemq.cloud:8884/mqtt', options);
+
+    client.on('connect', () => {
+      console.log('✅ Conectado a HiveMQ desde Web');
+    });
+
+    client.on('error', (err) => {
+      console.error('❌ Error de conexión MQTT:', err);
+    });
+
+    // Generar secciones para cada dedo con controles y botones
+    dedos.forEach(dedo => {
+      const section = document.createElement("div");
+      section.className = "dedo-section";
+
+      section.innerHTML = `
+        <h4>${dedo.nombre}</h4>
+
+        <div class="mb-2">
+          <label class="form-label">Dolor:</label>
+          <select id="dolor-${dedo.ruta}" class="form-select">
+            <option value="0">0 - Sin dolor</option>
+            <option value="1">1 - Leve</option>
+            <option value="2">2 - Moderado</option>
+            <option value="3">3 - Severo</option>
+          </select>
+        </div>
+
+        <div class="mb-2">
+          <label class="form-label">Limitación:</label>
+          <select id="limitacion-${dedo.ruta}" class="form-select">
+            <option value="0">0 - Sin limitación</option>
+            <option value="1">1 - Leve</option>
+            <option value="2">2 - Moderada</option>
+            <option value="3">3 - Severa</option>
+          </select>
+        </div>
+
+        <div class="mb-2">
+          <label class="form-label">Observación:</label>
+          <textarea id="observacion-${dedo.ruta}" rows="2" class="form-control"></textarea>
+        </div>
+
+        <div class="d-flex justify-content-between">
+          <button type="button" class="btn me-2" onclick="publicar('${dedo.ruta}', 'ELEVAR')">Elevar</button>
+          <button type="button" class="btn" onclick="publicar('${dedo.ruta}', 'BAJAR')">Bajar</button>
+        </div>
+      `;
+
+      container.appendChild(section);
+    });
+
+    function publicar(topic, mensaje) {
+      const fullTopic = `motor/${topic}`;
+      client.publish(fullTopic, mensaje, { qos: 1 }, (error) => {
+        if (error) {
+          console.error('❌ Error al publicar:', error);
+        } else {
+          console.log(`📤 Publicado: ${fullTopic} → ${mensaje}`);
+        }
+      });
+    }
+
+    function enviarDatos() {
+      const idPaciente = document.getElementById("paciente-select").value;
+
+      const datos = dedos.map(dedo => {
+        return {
+          dedo: dedo.nombre,
+          dolor: document.getElementById(`dolor-${dedo.ruta}`).value,
+          limitacion: document.getElementById(`limitacion-${dedo.ruta}`).value,
+          observacion: document.getElementById(`observacion-${dedo.ruta}`).value
+        };
+      });
+
+      fetch("/guardar_diagnostico", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ id_paciente: idPaciente, datos: datos })
+      })
+      .then(response => {
+        if (response.ok) {
+          alert("Datos enviados correctamente.");
+        } else {
+          alert("Error al enviar los datos.");
+        }
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        alert("Error al conectar con el servidor.");
+      });
+    }
+  </script>
+
+</body>
+</html>

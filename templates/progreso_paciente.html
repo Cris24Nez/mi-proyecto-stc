@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Progreso del Paciente</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 30px;
+            background-color: #f4f4f4;
+        }
+        form, .grafica {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            max-width: 700px;
+            margin: 20px auto;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #1976D2;
+        }
+    </style>
+</head>
+<body>
+
+    <h2><strong>Registro y Progreso del Paciente</strong></h2>
+
+    <form action="{{ url_for('guardar_progreso') }}" method="post">
+        <label for="paciente_id">ID del Paciente:</label>
+        <input type="text" id="paciente_id" name="paciente_id" required>
+
+        <label for="fecha">Fecha del ejercicio:</label>
+        <input type="date" id="fecha" name="fecha" required>
+
+        <label for="ejercicio">Nombre del ejercicio:</label>
+        <input type="text" id="ejercicio" name="ejercicio" required>
+
+        <label for="repeticiones">Repeticiones:</label>
+        <input type="number" id="repeticiones" name="repeticiones" min="0" required>
+
+        <label for="duracion">Duración (minutos):</label>
+        <input type="number" id="duracion" name="duracion" min="0" required>
+
+        <label for="intensidad">Intensidad percibida:</label>
+        <select id="intensidad" name="intensidad" required>
+            <option value="">Selecciona</option>
+            <option value="baja">Baja</option>
+            <option value="media">Media</option>
+            <option value="alta">Alta</option>
+        </select>
+
+        <label for="observaciones">Observaciones:</label>
+        <textarea id="observaciones" name="observaciones" rows="3"></textarea>
+
+        <button type="submit">Guardar Progreso</button>
+    </form>
+
+    <div class="grafica">
+        <h3>Progreso en Repeticiones</h3>
+        <canvas id="graficoProgreso"></canvas>
+    </div>
+
+    <script>
+        // Estos datos deberían venir del backend (Flask o tu base de datos)
+        const fechas = ["2025-05-01", "2025-05-03", "2025-05-06", "2025-05-10"];
+        const repeticiones = [10, 15, 20, 25];
+
+        const ctx = document.getElementById('graficoProgreso').getContext('2d');
+        const grafico = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: fechas,
+                datasets: [{
+                    label: 'Repeticiones realizadas',
+                    data: repeticiones,
+                    backgroundColor: 'rgba(33, 150, 243, 0.6)',
+                    borderColor: 'rgba(33, 150, 243, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Cantidad'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Fecha'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>

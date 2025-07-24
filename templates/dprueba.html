@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Control Dedos NEMA17 MQTT</title>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <style>
+    body { font-family: Arial; padding: 40px; }
+    button { margin: 10px; padding: 10px 20px; }
+  </style>
+</head>
+<body>
+  <h1>Control de Dedos vía MQTT</h1>
+  <button onclick="elevar('pulgar')">Pulgar</button>
+  <button onclick="elevar('indice')">Índice</button>
+  <button onclick="elevar('medio')">Medio</button>
+  <button onclick="elevar('anular')">Anular</button>
+  <button onclick="elevar('menique')">Meñique</button>
+  
+  <script>
+    const client = mqtt.connect('wss://broker.hivemq.com:8884/mqtt');
+
+    client.on('connect', () => {
+      console.log('Conectado al broker MQTT');
+    });
+
+    function elevar(dedo) {
+      client.publish(`motor/${dedo}`, 'elevar');
+      console.log(`Pedido de movimiento: motor/${dedo}`);
+    }
+  </script>
+</body>
+</html>

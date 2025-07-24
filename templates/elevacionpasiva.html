@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Ejercicio de rehabilitación pasiva #2 - Elevación de todos los dedos</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- MQTT.js -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+  <style>
+    body {
+      padding: 40px;
+      font-family: 'Roboto', sans-serif;
+      background-image: url('/static/img/fdp7.jpg');
+      background-size: cover;
+      background-color: rgba(255, 255, 255, 0.6);
+      background-blend-mode: lighten;
+    }
+    .dedos-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: left;
+    }
+    .dedo-section {
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 10px;
+      width: 250px;
+      background-color: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    button[type="button"] {
+    background-color: #6c757d;  /* Gris Bootstrap */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+
+   button[type="button"]:hover {
+    background-color: #5a6268;
+    transform: scale(1.03);
+  }
+    .volver-link {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Enlace Volver -->
+  <div class="volver-link">
+    <a href="{{ url_for('ejerpasivos') }}" class="btn btn-outline-secondary">← Volver</a>
+  </div>
+
+  <h2><strong>Ejercicio de rutina pasiva #2: Elevación de los Dedos</strong></h2>
+  <p><strong>Instrucción:</strong> Presione “Elevar” para evaluar el movimiento de los dedos.</p>
+
+  <form id="formulario-diagnostico">
+    <div id="dedos-container" class="dedos-grid">
+      <!-- Dedos se generan aquí -->
+    </div>
+  </form>
+
+  <!-- Cronómetro y contador -->
+  <div class="mt-4 text-center">
+    <button type="button" class="btn btn-danger mt-2" onclick="detenerCronometroYContar()">Detener cronómetro</button>
+    <button type="button" class="btn btn-warning mt-2" onclick="reiniciarTodo()">Reiniciar cronómetro/ciclos</button>
+
+  </div>
+<script>
+  const dedos = [
+    { nombre: "Pulgar", ruta: "pulgar", elevado: false },
+    { nombre: "Índice", ruta: "indice", elevado: false },
+    { nombre: "Medio", ruta: "medio", elevado: false },
+    { nombre: "Anular", ruta: "anular", elevado: false },
+    { nombre: "Meñique", ruta: "menique", elevado: false }
+  ];
+
+  const container = document.getElementById('dedos-container');
+
+  // MQTT CONFIG
+  const options = {
+    clean: true,
+    connectTimeout: 4000,
+    clientId: 'webClient_' + Math.random().toString(16).substr(2, 8),
+    username: 'Chris',
+    password: 'HiveMq25proy.',
+    reconnectPeriod: 1000,
+  };
+
+  const client = mqtt.connect('wss://1e4496b59d6543c6b38d74b2c55cb32d.s1.eu.hivemq.cloud:8884/mqtt', options);
+
+  client.on('connect', () => {
+    console.log('✅ Conectado a HiveMQ desde Web');
+  });
+
+  client.on('error', (err) => {
+    console.error('❌ Error de conexión MQTT:', err);
+  });
+
+  // CRONÓMETRO Y CONTADOR
+  let cronometroActivo = false;
+  let segundos = 0;
+  let cronometroInterval;
+  let ciclos = 0;
+
+  const infoContainer = document.createElement("div");
+  infoContainer.className = "text-center mt-4";
+  infoContainer.innerHTML = `
+    <h5>Cronómetro: <span id="cronometro">0</span> s</h5>
+    <h5>Ciclos completados: <span id="contador-ciclos">0</span></h5>
+  `;
+  document.body.insertBefore(infoContainer, document.getElementById('formulario-diagnostico').nextSibling);
+
+  function iniciarCronometro() {
+    if (cronometroActivo) return;
+    cronometroActivo = true;
+    segundos = 0;
+    document.getElementById("cronometro").textContent = segundos;
+    cronometroInterval = setInterval(() => {
+      segundos++;
+      document.getElementById("cronometro").textContent = segundos;
+    }, 1000);
+    console.log("⏱️ Cronómetro iniciado");
+  }
+
+  function publicar(topic, mensaje) {
+    const fullTopic = `motor/${topic}`;
+    client.publish(fullTopic, mensaje, { qos: 1 }, (error) => {
+      if (error) {
+        console.error('❌ Error al publicar:', error);
+      } else {
+        console.log(`📤 Publicado: ${fullTopic} → ${mensaje}`);
+      }
+    });
+
+    // Buscar el dedo afectado
+    const dedo = dedos.find(d => d.ruta === topic);
+
+    if (mensaje === "ELEVAR") {
+      dedo.elevado = true;
+      iniciarCronometro();
+    }
+
+    if (mensaje === "BAJAR" && dedo.elevado) {
+      dedo.elevado = false;
+      ciclos++;
+      document.getElementById("contador-ciclos").textContent = ciclos;
+      console.log("🔁 Ciclo contado. Total:", ciclos);
+    }
+  }
+
+  // GENERAR BOTONES
+  dedos.forEach(dedo => {
+    const section = document.createElement("div");
+    section.className = "dedo-section";
+
+    section.innerHTML = `
+      <h4>${dedo.nombre}</h4>
+      <div class="d-flex justify-content-between">
+        <button type="button" class="btn me-2" onclick="publicar('${dedo.ruta}', 'ELEVAR')">Elevar</button>
+        <button type="button" class="btn" onclick="publicar('${dedo.ruta}', 'BAJAR')">Bajar</button>
+      </div>
+    `;
+
+    container.appendChild(section);
+  });
+   function detenerCronometroYContar() {
+    if (cronometroActivo) {
+      clearInterval(cronometroInterval);
+      cronometroActivo = false;
+      console.log("⏹️ Cronómetro detenido por el usuario");
+
+      ciclos++;
+      document.getElementById("contador-ciclos").textContent = ciclos;
+      console.log("🔁 Ciclo contado manualmente. Total:", ciclos);
+    }
+  }
+      function reiniciarTodo() {
+        // Detener cronómetro si está activo
+        if (cronometroActivo) {
+          clearInterval(cronometroInterval);
+          cronometroActivo = false;
+        }
+
+        // Reiniciar variables
+        segundos = 0;
+        ciclos = 0;
+        document.getElementById("cronometro").textContent = segundos;
+        document.getElementById("contador-ciclos").textContent = ciclos;
+
+        // Reiniciar estado de los dedos
+        dedos.forEach(dedo => {
+          dedo.elevado = false;
+        });
+
+        console.log("🔄 Cronómetro y ciclos reiniciados");
+      }
+</script>
+
+
+</body>
+</html>

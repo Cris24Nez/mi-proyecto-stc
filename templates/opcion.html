@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Opciones</title>
+        <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body 
+        {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background-image: url('/static/img/imgo1.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.6); /* capa blanca translúcida */
+            background-blend-mode: lighten; /* o try multiply, overlay, soft-light, etc. */
+        }
+
+        .role-container {
+            background-color: rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            border-radius: 10px;
+            box-sizing: border-box;
+            width: 90%;
+            max-width: 1100px;
+        }
+
+        h2 {
+            color: black;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .boxes {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .box {
+            flex: 1;
+            background-color: rgba(200, 160, 255, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            min-width: 250px;
+        }
+
+        .box h3 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .box-lila 
+        {
+            background-color: rgba(200, 160, 252, 0.4); /* Lila suave */
+        }
+
+        .box-celeste 
+        {
+        background-color: rgba(144, 238, 230, 0.4); /* Celeste bajito */
+        }
+        .box-verdeagua 
+        {
+        background-color: rgba(180, 180, 180, 0.4); /* plomo */
+        }
+        .box button {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 16px;
+            background-color: whitesmoke;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .box button:hover {
+            background-color: #4da09e;
+            color: white;
+        }
+
+        .salir-container {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .salir-container a {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: red;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .salir-container a:hover {
+            background-color: darkred;
+        }
+         .volver-link 
+         {
+        position: absolute;
+        top: 20px;
+        right: 30px;
+        }
+    </style>
+</head>
+<body>
+            <!-- Enlace Volver -->
+      <div class="volver-link">
+        <a href="{{ url_for('logout') }}" class="btn btn-danger">Cerrar sesión</a>
+     </div>
+
+      <div class="role-container">
+        <h2><strong>Seleccione una opción</strong></h2>
+        <div class="boxes">
+            <!-- Box 1: Registros -->
+            <div class="box box-lila">
+                <h3><strong>Gestión de información:</strong></h3>
+                <button onclick="location.href='{{ url_for('registropaciente') }}'">Registrar Paciente</button>
+                <button onclick="location.href='{{ url_for('buscarpaciente') }}'">Buscar Paciente</button>
+                <button onclick="location.href='{{ url_for('editarpaciente')}}'">Modificar datos</button>
+                <button onclick="location.href='{{ url_for('eliminarpaciente') }}'">Eliminar datos Paciente</button>
+            </div>
+
+            <!-- Box 2: Diagnóstico -->
+            <div class="box box-celeste">
+                <h3><strong>Diagnóstico clínico:</strong></h3>
+                <button onclick="location.href='{{ url_for('diagnostico') }}'">Escala de gravedad y funcionalidad</button>
+                <button onclick="location.href='{{ url_for('diagnosticop1') }}'">Diagnóstico práctico 1 - Elevación de dedos</button>
+                <button onclick="location.href='{{ url_for('diagnosticop2') }}'">Diagnóstico práctico 2 - Flexión/Extensión</button>
+                <button onclick="location.href='{{ url_for('diagnosticop3') }}'">Diagnóstico práctico 3 - Flexión de la muneca</button>
+
+            </div>
+
+            <!-- Box 3: Ejercicios y Progreso -->
+            <div class="box box-verdeagua">
+                <h3><strong>Rutina de ejercicios:</strong></h3>
+                <button onclick="location.href='{{ url_for('ejerpasivos') }}'">Ejercicios de Rutina Pasiva</button>
+                <button onclick="location.href='{{ url_for('ejeractivos') }}'">Ejercicios de Rutina Activa</button>
+                <button onclick="location.href='{{ url_for('progresopaciente') }}'">Ejercicio de Rehabilitación</button>
+                <button onclick="location.href='{{ url_for('progresopac') }}'">Progreso del paciente</button>
+            </div>
+        </div>
+       </div>
+         <!-- Bootstrap JS (opcional) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
+    </script>
+</body>
+</html>

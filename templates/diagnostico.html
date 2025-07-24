@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Formulario de Diagnóstico del STC</title>
+  <style>
+    body 
+    {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-image: url('/static/img/imgd1.jpg');
+      background-size: cover;
+      background-attachment: fixed;
+      background-position: center;
+      background-color: rgba(255, 255, 255, 0.6); /* capa blanca translúcida */
+      background-blend-mode: lighten; /* o try multiply, overlay, soft-light, etc. */
+    }
+
+    .form-container 
+    {
+      max-width: 900px;
+      margin: auto;
+      background-color: rgba(245, 245, 245, 0.8);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.8);
+    }
+
+    h2, h3 
+    {
+      text-align: center;
+      color: #333;
+    }
+
+    .form-section {
+      margin-bottom: 40px;
+    }
+
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .form-group {
+      flex: 1 1 45%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    select, input[type="date"], input[type="text"] {
+      padding: 8px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    input[readonly] {
+      background-color: #e9ecef;
+    }
+
+    .form-result {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #f1f1f1;
+      border-radius: 6px;
+    }
+
+    button {
+      display: block;
+      margin: auto;
+      padding: 10px 30px;
+      background-color: #6f42c1;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="form-container">
+    <h2>Formulario de Diagnóstico del STC</h2>
+    <form action="/guardar" method="POST">
+
+      <div class="form-section">
+        <h3>Información General</h3>
+        <div class="form-group">
+          <label for="id_paciente">Paciente:</label>
+          <select id="id_paciente" name="id_paciente" required>
+            {% for paciente in pacientes %}
+              <option value="{{ paciente[0] }}">{{ paciente[1] }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fecha">Fecha:</label>
+            <input type="date" id="fecha" name="fecha" required>
+          </div>
+          <div class="form-group">
+            <label for="mano_dominante">Lateralidad Dominante:</label>
+            <select id="mano_dominante" name="mano_dominante" required>
+              <option value="derecha">Derecha</option>
+              <option value="izquierda">Izquierda</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Parte 1: Escala de Gravedad de los Síntomas</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="dolor_nocturno">Dolor nocturno:</label>
+            <select id="dolor_nocturno" name="dolor_nocturno" required>
+              <option value="1">No tengo dolor nocturno</option>
+              <option value="2">Dolor leve</option>
+              <option value="3">Dolor moderado</option>
+              <option value="4">Dolor intenso</option>
+              <option value="5">Dolor muy severo</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="frecuencia_dolor_nocturna">Frecuencia de dolor nocturno:</label>
+            <select id="frecuencia_dolor_nocturna" name="frecuencia_dolor_nocturna" required>
+              <option value="1">Nunca</option>
+              <option value="2">Una vez</option>
+              <option value="3">Dos o tres veces</option>
+              <option value="4">Cuatro o cinco veces</option>
+              <option value="5">Más de cinco veces</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="dolor_diurno">Dolor diurno:</label>
+            <select id="dolor_diurno" name="dolor_diurno" required>
+              <option value="1">Nunca tengo dolor durante el día</option>
+              <option value="2">Dolor leve</option>
+              <option value="3">Dolor moderado</option>
+              <option value="4">Dolor intenso</option>
+              <option value="5">Dolor muy intenso</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="frecuencia_dolor_diurna">Frecuencia de dolor diurno:</label>
+            <select id="frecuencia_dolor_diurna" name="frecuencia_dolor_diurna" required>
+              <option value="1">Nunca</option>
+              <option value="2">Una o dos veces</option>
+              <option value="3">De tres a cuatro veces</option>
+              <option value="4">Más de cinco veces</option>
+              <option value="5">El dolor es constante</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="duracion_dolor">Duración de los episodios de dolor durante el día:</label>
+            <select id="duracion_dolor" name="duracion_dolor" required>
+              <option value="1">No tengo dolor</option>
+              <option value="2">Menos de 10min</option>
+              <option value="3">10-60min</option>
+              <option value="4">Más de 60min</option>
+              <option value="5">Dolor constante</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="entumecimiento">Entumecimiento:</label>
+            <select id="entumecimiento" name="entumecimiento" required>
+              <option value="1">No</option>
+              <option value="2">Entumecimiento leve</option>
+              <option value="3">Entumecimiento Moderado</option>
+              <option value="4">Entumecimiento grave</option>
+              <option value="5">Entumecimiento muy grave</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="debilidad_muscular">Debilidad muscular:</label>
+            <select id="debilidad_muscular" name="debilidad_muscular" required>
+               <option value="1">No</option>
+              <option value="2">Debilidad leve</option>
+              <option value="3">Debilidad moderada</option>
+              <option value="4">Debilidad severa</option>
+              <option value="5">Debilidad muy severa</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="hormigueo">Hormigueo:</label>
+            <select id="hormigueo" name="hormigueo" required>
+              <option value="1">No</option>
+              <option value="2">Leve hormigueo</option>
+              <option value="3">Hormigueo moderado</option>
+              <option value="4">Grave hormigueo</option>
+              <option value="5">Hormigueo myu severo</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="gravedad">Gravedad del hormigueo/entumecimiento por la noche:</label>
+            <select id="gravedad" name="gravedad" required>
+              <option value="1">No tengo</option>
+              <option value="2">Leve</option>
+              <option value="3">Moderado</option>
+              <option value="4">Grave</option>
+              <option value="5">Muy grave</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="frec_nocturna">Frecuencia de entumecimiento nocturno:</label>
+            <select id="frec_nocturna" name="frec_nocturna" required>
+              <option value="1">Nunca</option>
+              <option value="2">Una vez</option>
+              <option value="3">Dos a tres veces</option>
+              <option value="4">Cuatro a cinco</option>
+              <option value="5">Más de cinco veces</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="dificultad_agarre">Dificultad para agarrar objetos:</label>
+            <select id="dificultad_agarre" name="dificultad_agarre" required>
+              <option value="1">Sin dificultad</option>
+              <option value="2">Dificultad leve</option>
+              <option value="3">Dificultad moderada</option>
+              <option value="4">Dificultad severa</option>
+              <option value="5">Dificultad muy severa</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-result">
+          <label for="promedioP1">Promedio Parte 1:</label>
+          <input type="text" id="promedioP1" name="promedioP1" readonly>
+          <p><strong>Clasificación:</strong> <span id="gradosss_mostrar"></span></p>
+          <input type="hidden" id="gradosss" name="gradosss">
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Parte 2: Escala de Estado Funcional</h3>
+       <div class="form-row">
+          <div class="form-group">
+            <label for="acc_escribir">Dificultad al escribir o teclear:</label>
+            <select id="acc_escribir" name="acc_escribir" required>
+              <option value="1">Sin_dificultad</option>
+              <option value="2">Poca_dificultad</option>
+              <option value="3">Dificultad_moderada</option>
+              <option value="4">Muy_dificil</option>
+              <option value="5">Demasiado_dificil</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="acc_abotonar">Dificultad al abotonar la ropa:</label>
+            <select id="acc_abotonar" name="acc_abotonar" required>               
+              <option value="1">Sin_dificultad</option>
+              <option value="2">Poca_dificultad</option>
+              <option value="3">Dificultad_moderada</option>
+              <option value="4">Muy_dificil</option>
+              <option value="5">Demasiado_dificil</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="acc_sostener">3.Dificultad de sostener un libro mientras lee:</label>
+            <select id="acc_sostener" name="acc_sostener" required>
+              <option value="1">Sin_dificultad</option>
+              <option value="2">Poca_dificultad</option>
+              <option value="3">Dificultad_moderada</option>
+              <option value="4">Muy_dificil</option>
+              <option value="5">Demasiado_dificil</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="acc_sostener2">4.Dificultad de sostener el teléfono:</label>
+            <select id="acc_sostener2" name="acc_sostener2" required>
+              <option value="1">Sin_dificultad</option>
+              <option value="2">Poca_dificultad</option>
+              <option value="3">Dificultad_moderada</option>
+              <option value="4">Muy_dificil</option>
+              <option value="5">Demasiado_dificil</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="acc_abrir">5.Dificultad de abrir frascos:</label>
+            <select id="acc_abrir" name="acc_abrir" required>
+              <option value="1">Sin_dificultad</option>
+              <option value="2">Poca_dificultad</option>
+              <option value="3">Dificultad_moderada</option>
+              <option value="4">Muy_dificil</option>
+              <option value="5">Demasiado_dificil</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="acc_movilidad">6.Dificultad de realizar tareas domésticas:</label>
+            <select id="acc_movilidad" name="acc_movilidad" required>
+              <option value="1">Sin_dificultad</option>
+              <option value="2">Poca_dificultad</option>
+              <option value="3">Dificultad_moderada</option>
+              <option value="4">Muy_dificil</option>
+              <option value="5">Demasiado_dificil</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="acc_llevar">7.Dificultad de llevar cosas:</label>
+            <select id="acc_llevar" name="acc_llevar" required>
+              <option value="1">Sin_dificultad</option>
+              <option value="2">Poca_dificultad</option>
+              <option value="3">Dificultad_moderada</option>
+              <option value="4">Muy_dificil</option>
+              <option value="5">Demasiado_dificil</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="acc_vestirse">8.Dificultad de vestirse:</label>
+            <select id="acc_vestirse" name="acc_vestirse" required>
+              <option value="1">Sin_dificultad</option>
+              <option value="2">Poca_dificultad</option>
+              <option value="3">Dificultad_moderada</option>
+              <option value="4">Muy_dificil</option>
+              <option value="5">Demasiado_dificil</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-result">
+          <label for="promedioP2">Promedio Parte 2:</label>
+          <input type="text" id="promedioP2" name="promedioP2" readonly>
+          <p><strong>Clasificación:</strong> <span id="gradofss_mostrar"></span></p>
+          <input type="hidden" id="gradofss" name="gradofss">
+        </div>
+      </div>
+            <label for="observaciones" class="form-label">Observaciones:</label>
+                <textarea name="observaciones" id="observaciones" class="form-control" rows="3"></textarea>
+            <button type="submit">Enviar Diagnóstico</button>
+            <a href="{{ url_for('opcion') }}">Volver</a>
+    </form>
+  </div>
+
+  <script>
+    function calcularPromedioParte1() {
+      const campos = [
+        "dolor_nocturno", "frecuencia_dolor_nocturna", "dolor_diurno",
+        "frecuencia_dolor_diurna", "duracion_dolor", "entumecimiento",
+        "debilidad_muscular", "hormigueo", "gravedad", "frec_nocturna",
+        "dificultad_agarre"
+      ];
+      let total = 0;
+      campos.forEach(id => total += parseInt(document.getElementById(id).value || 0));
+      const promedio = total / campos.length;
+      const promedioInput = document.getElementById("promedioP1");
+      promedioInput.value = promedio.toFixed(2);
+      const grado = document.getElementById("gradosss_mostrar");
+      const gradoHidden = document.getElementById("gradosss");
+      if (promedio < 2) {
+        grado.textContent = "Grado I";
+        gradoHidden.value = "Grado I";
+      } else if (promedio < 3.9) {
+        grado.textContent = "Grado II";
+        gradoHidden.value = "Grado II";
+      } else {
+        grado.textContent = "Grado III";
+        gradoHidden.value = "Grado III";
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const campos = [
+        "dolor_nocturno", "frecuencia_dolor_nocturna", "dolor_diurno",
+        "frecuencia_dolor_diurna", "duracion_dolor", "entumecimiento",
+        "debilidad_muscular", "hormigueo", "gravedad", "frec_nocturna",
+        "dificultad_agarre"
+      ];
+      campos.forEach(id => {
+        document.getElementById(id).addEventListener("change", calcularPromedioParte1);
+      });
+    });
+  </script>
+
+<script>
+    function calcularPromedioParte2() {
+      const campos = [
+        "acc_escribir", "acc_abotonar",
+        "acc_sostener", "acc_sostener2",
+        "acc_abrir", "acc_movilidad",
+        "acc_llevar","acc_vestirse"
+      ];
+      let total = 0;
+      campos.forEach(id => total += parseInt(document.getElementById(id).value || 0));
+      const promedio = total / campos.length;
+      const promedioInput = document.getElementById("promedioP2");
+      promedioInput.value = promedio.toFixed(2);
+      const grado = document.getElementById("gradofss_mostrar");
+      const gradoHidden = document.getElementById("gradofss");
+      if (promedio < 2) {
+        grado.textContent = "Grado I";
+        gradoHidden.value = "Grado I";
+      } else if (promedio < 3.9) {
+        grado.textContent = "Grado II";
+        gradoHidden.value = "Grado II";
+      } else {
+        grado.textContent = "Grado III";
+        gradoHidden.value = "Grado III";
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const campos = [
+        "acc_escribir",
+        "acc_abotonar",
+        "acc_sostener",
+        "acc_sostener2",
+        "acc_abrir",
+        "acc_movilidad",
+        "acc_llevar",
+        "acc_vestirse"
+    
+      ];
+      campos.forEach(id => {
+        document.getElementById(id).addEventListener("change", calcularPromedioParte2);
+      });
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Datos actualizados</title>
+</head>
+<body>
+    <h2>Datos actualizados del paciente</h2>
+    <ul>
+        <li><strong>CI:</strong> {{ paciente.ci }}</li>
+        <li><strong>Nombre:</strong> {{ paciente.nombre }}</li>
+        <li><strong>Apellido:</strong> {{ paciente.apellido }}</li>
+        <li><strong>Edad:</strong> {{ paciente.edad }}</li>
+        <li><strong>Género:</strong> {{ paciente.genero }}</li>
+        <li><strong>Teléfono:</strong> {{ paciente.telefono }}</li>
+        <li><strong>Ocupación:</strong> {{ paciente.ocupacion }}</li>
+    </ul>
+
+    <form action="{{ url_for('opciones') }}">
+        <button type="submit">Aceptar</button>
+    </form>
+</body>
+</html>

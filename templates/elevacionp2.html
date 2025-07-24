@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Rutina de rehabilitación pasiva #2 - Elevación de Dedos en conjunto</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- MQTT.js -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+  <style>
+    body {
+      padding: 40px;
+      font-family: 'Roboto', sans-serif;
+      background-image: url('/static/img/fdp7.jpg');
+      background-size: cover;
+      background-color: rgba(255, 255, 255, 0.6);
+      background-blend-mode: lighten;
+    }
+    .dedos-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: left;
+    }
+    .dedo-section {
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 10px;
+      width: 250px;
+      background-color: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    button[type="button"] {
+      background-color: #6f42c1;
+      color: white;
+    }
+    button[type="button"]:hover {
+      background-color: #5a379f;
+    }
+    .volver-link {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Enlace Volver -->
+  <div class="volver-link">
+    <a href="{{ url_for('opcion') }}" class="btn btn-outline-secondary">← Volver</a>
+  </div>
+
+  <h2><strong>Rutina de Rehabilitación #2: Elevación Dedo por Dedo</strong></h2>
+  <p><strong>Instrucción:</strong> Presione “Iniciar” para evaluar el movimiento de los dedos en conjunto.</p>
+
+  <div class="mt-4 text-center">
+    <button type="button" class="btn btn-primary" onclick="moverMotoresSecuencialmente()">Iniciar Movimiento Secuencial</button>
+  </div>
+
+  <div class="mt-3 text-center">
+    <h4>Tiempo transcurrido: <span id="cronometro">0</span> segundos</h4>
+    <button type="button" class="btn btn-danger mt-2" onclick="detenerTodo()">Detener Movimiento Secuencial</button>
+  </div>
+
+  <div class="mt-3 text-center">
+    <h5 id="mensajeEstado" class="text-info"></h5>
+  </div>
+
+  <script>
+    const dedos = [
+      { nombre: "Pulgar", ruta: "pulgar" },
+      { nombre: "Índice", ruta: "indice" },
+      { nombre: "Medio", ruta: "medio" },
+      { nombre: "Anular", ruta: "anular" },
+      { nombre: "Meñique", ruta: "menique" }
+    ];
+
+    const mensajeEstado = document.getElementById('mensajeEstado');
+
+    // ========= CONEXIÓN MQTT =========
+    const options = {
+      clean: true,
+      connectTimeout: 4000,
+      clientId: 'webClient_' + Math.random().toString(16).substr(2, 8),
+      username: 'Chris',
+      password: 'HiveMq25proy.',
+      reconnectPeriod: 1000,
+    };
+
+    const client = mqtt.connect('wss://1e4496b59d6543c6b38d74b2c55cb32d.s1.eu.hivemq.cloud:8884/mqtt', options);
+
+    client.on('connect', () => {
+      console.log('✅ Conectado a HiveMQ desde Web');
+    });
+
+    client.on('error', (err) => {
+      console.error('❌ Error de conexión MQTT:', err);
+    });
+
+    // ======== CRONÓMETRO ========
+    let cronometroIntervalo;
+    let segundos = 0;
+
+    function iniciarCronometro() {
+      segundos = 0;
+      document.getElementById('cronometro').textContent = segundos;
+      cronometroIntervalo = setInterval(() => {
+        segundos++;
+        document.getElementById('cronometro').textContent = segundos;
+      }, 1000);
+      console.log("⏱️ Cronómetro iniciado.");
+    }
+
+    function detenerCronometro() {
+      clearInterval(cronometroIntervalo);
+      console.log("⏹️ Cronómetro detenido.");
+    }
+
+    // ======== MOVIMIENTO SECUENCIAL ========
+    let timeouts = []; // para almacenar los IDs de setTimeout
+
+    function moverMotoresSecuencialmente() {
+      detenerTodo(); // reinicia cualquier proceso previo
+      mensajeEstado.textContent = "Movimiento en curso...";
+      mensajeEstado.classList.remove('text-success', 'text-danger');
+      mensajeEstado.classList.add('text-info');
+
+      iniciarCronometro();
+
+      dedos.forEach((dedo, index) => {
+        const elevacionTimeout = setTimeout(() => {
+          publicar(dedo.ruta, 'ELEVAR');
+          const bajadaTimeout = setTimeout(() => {
+            publicar(dedo.ruta, 'BAJAR');
+
+            // Si es el último dedo en bajar, detener cronómetro y mostrar mensaje
+            if (index === dedos.length - 1) {
+              detenerCronometro();
+              mensajeEstado.textContent = "✅ Movimiento completado.";
+              mensajeEstado.classList.remove('text-info');
+              mensajeEstado.classList.add('text-success');
+              console.log("✅ Movimiento secuencial completado.");
+            }
+
+          }, 3000);
+          timeouts.push(bajadaTimeout);
+        }, index * 5000);
+        timeouts.push(elevacionTimeout);
+      });
+    }
+
+    function detenerTodo() {
+      // Detener cronómetro
+      detenerCronometro();
+
+      // Cancelar todos los movimientos programados
+      timeouts.forEach(t => clearTimeout(t));
+      timeouts = [];
+
+      // Enviar comandos de "BAJAR" a todos los dedos por si alguno quedó elevado
+      dedos.forEach(dedo => {
+        publicar(dedo.ruta, 'BAJAR');
+      });
+
+      mensajeEstado.textContent = "🛑 Movimiento detenido.";
+      mensajeEstado.classList.remove('text-info', 'text-success');
+      mensajeEstado.classList.add('text-danger');
+
+      console.log("🛑 Todos los movimientos detenidos.");
+    }
+
+    // ======== PUBLICAR MQTT ========
+    function publicar(topic, mensaje) {
+      const fullTopic = `motor/${topic}`;
+      client.publish(fullTopic, mensaje, { qos: 1 }, (error) => {
+        if (error) {
+          console.error('❌ Error al publicar:', error);
+        } else {
+          console.log(`📤 Publicado: ${fullTopic} → ${mensaje}`);
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>

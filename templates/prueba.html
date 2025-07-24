@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Diagnóstico</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f4f4;
+      background-image: url('/static/img/fi3.jpg');
+    }
+
+    .main-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .column {
+      flex: 1;
+      background: white;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 600px;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    .section {
+      margin-bottom: 20px;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+    }
+
+    .section h3 {
+      margin-top: 0;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    select {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    input[type="submit"] {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+      border-radius: 4px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    input[type="submit"]:hover {
+      background-color: #45a049;
+    }
+
+    .button {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #76c7c0;
+      color: white;
+      border-radius: 5px;
+      text-decoration: none;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    .button:hover {
+      background-color: #4da09e;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Criterios de diagnóstico</h2>
+
+<div class="main-container">
+  <!-- Columna izquierda: Parte 1 -->
+  <div class="column">
+    <form action="{{ url_for('diagnostico') }}" method="post">
+      <div class="section">
+        <h3>Cuestionario de Boston (BCTSQ)</h3>
+        <h4>Parte 1. Escala de gravedad de los Síntomas</h4>
+
+        <label for="mano_dominante">Mano dominante:</label>
+        <select id="mano_dominante" name="mano_dominante" required>
+          <option value="derecha">Derecha</option>
+          <option value="izquierda">Izquierda</option>
+        </select>
+
+        <!-- Aquí vienen los select (del 1 al 11) -->
+        <!-- Por brevedad solo dejo algunos, tú puedes agregar los que faltan igual que antes -->
+
+        <label for="dolor_nocturno">1. Dolor nocturno:</label>
+        <select id="dolor_nocturno" name="dolor_nocturno" required>
+          <option value="1">Normal</option>
+          <option value="2">Leve</option>
+          <option value="3">Medio</option>
+          <option value="4">Grave</option>
+          <option value="5">Serio</option>
+        </select>
+
+            <label for="frecuencia_dolor_nocturna">2.Frecuencia de dolor nocturna:</label>
+            <select id="frecuencia_dolor_nocturna" name="frecuencia_dolor_nocturna" required>
+                <option value="1">Normal</option>
+                <option value="2">1</option>
+                <option value="3">2-3</option>
+                <option value="4">4-5</option>
+                <option value="5">>5</option>
+            </select>
+
+             <label for="dolor_diurno">3.Dolor diurno:</label>
+            <select id="dolor_diurno" name="dolor_diurno" required>
+                 <option value="1">Normal</option>
+                <option value="2">Leve</option>
+                <option value="3">Medio</option>
+                <option value="4">Grave</option>
+                <option value="5">Serio</option>
+            </select>
+
+               <label for="frecuencia_dolor_diurna">4.Frecuencia de dolor diurna:</label>
+            <select id="frecuencia_dolor_diurna" name="frecuencia_dolor_diurna" required>
+                <option value="1">Sin dolor</option>
+                <option value="2">1-2</option>
+                <option value="3">3-5</option>
+                <option value="4">>5</option>
+                <option value="5">Continuo</option>
+            </select>
+
+             <label for="duracion_dolor">5.Duración de los episodios de dolor:</label>
+            <select id="duracion_dolor" name="duracion_dolor" required>
+                <option value="1">Normal</option>
+                <option value="2"><10min</option>
+                <option value="3">10-60min</option>
+                <option value="4">>60min</option>
+                <option value="5">Continuo</option>
+            </select>
+
+              <label for="entumecimiento">6.Entumecimiento:</label>
+            <select id="entumecimiento" name="entumecimiento" required>
+                <option value="1">Normal</option>
+                <option value="2">Leve</option>
+                <option value="3">Medio</option>
+                <option value="4">Grave</option>
+                <option value="5">Serio</option>
+            </select>
+
+            <label for="debilidad_muscular">7.Debilidad muscular:</label>
+            <select id="debilidad_muscular" name="debilidad_muscular" required>
+                <option value="1">Normal</option>
+                <option value="2">Leve</option>
+                <option value="3">Medio</option>
+                <option value="4">Grave</option>
+                <option value="5">Serio</option>
+            </select>
+
+            <label for="hormigueo">8.Hormigueo:</label>
+            <select id="hormigueo" name="hormigueo" required>
+                <option value="1">Normal</option>
+                <option value="2">Leve</option>
+                <option value="3">Medio</option>
+                <option value="4">Grave</option>
+                <option value="5">Serio</option>
+            </select>
+
+             <label for="gravedad">9.Gravedad del entumecimiento u Hormigueo:</label>
+            <select id="gravedad" name="gravedad" required>
+                <option value="1">Normal</option>
+                <option value="2">Leve</option>
+                <option value="3">Medio</option>
+                <option value="4">Grave</option>
+                <option value="5">Serio</option>
+            </select>
+
+              <label for="frec_nocturna">10.Frecuencia del entumecimiento u Hormigueo nocturno en las ultimas 2 semanas:</label>
+            <select id="frec_nocturna" name="frec_nocturna" required>
+                <option value="1">Normal</option>
+                <option value="2">1</option>
+                <option value="3">2-3</option>
+                <option value="4">3-5</option>
+                <option value="5">>5</option>
+            </select>
+
+
+              <label for="dificultad_agarre">11.Dificultad de agarre:</label>
+            <select id="dificultad_agarre" name="dificultad_agarre" required>
+                <option value="1">sin_dificultad</option>
+                <option value="2">poca_dificultad</option>
+                <option value="3">dificultad_moderada</option>
+                <option value="4">muy_dificil</option>
+                <option value="5">demasiado_dificil</option>
+            </select>
+
+            <label for="promedioP1">Estado de Gravedad de síntomas:</label>
+            <input type="text" id="promedioP1" name="promedioP1" readonly placeholder="Promedio">
+            <!-- Muestra en pantalla -->
+            <p><strong>Clasificación:</strong> <span id="gradosss_mostrar"></span></p>
+
+            <!-- Campo oculto que sí se envía -->
+            <input type="hidden" id="gradosss" name="gradosss">
+        <!-- Agrega los otros ítems del 2 al 11 igual que este -->
+
+        <label for="promedioP1">Estado de Gravedad de síntomas:</label>
+        <input type="text" id="promedioP1" name="promedioP1" readonly placeholder="Promedio">
+        <p><strong>Clasificación:</strong> <span id="gradosss_mostrar"></span></p>
+        <input type="hidden" id="gradosss" name="gradosss">
+      </div>
+      <input type="submit" value="Enviar">
+    </form>
+  </div>
+
+
+
+
+
+
+  <!-- Columna derecha: Parte 2 o contenido adicional -->
+  <div class="column">
+    <div class="section">
+      <h3>Parte 2: Resultados / Comentarios / Rutinas</h3>
+      <p>Aquí puedes mostrar otra sección como resultado del diagnóstico, recomendaciones, rutinas de ejercicios, etc.</p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

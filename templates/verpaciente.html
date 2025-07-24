@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ver Paciente</title>
+</head>
+<body>
+    <h1>Datos del Paciente</h1>
+    <ul>
+        <li><strong>ID:</strong> {{ paciente[0] }}</li>
+        <li><strong>CI:</strong> {{ paciente[1] }}</li>
+        <li><strong>Nombre:</strong> {{ paciente[2] }}</li>
+        <li><strong>Apellido:</strong> {{ paciente[3] }}</li>
+        <li><strong>Edad:</strong> {{ paciente[4] }}</li>
+        <li><strong>Género:</strong> {{ paciente[5] }}</li>
+        <li><strong>Teléfono:</strong> {{ paciente[6] }}</li>
+        <li><strong>Ocupación:</strong> {{ paciente[7] }}</li>
+    </ul>
+
+<h2>Cuestionario BCTSQ</h2>
+    <table>
+        <tbody>
+            {% for registro in cuestionario_bctsq %}
+                <tr>
+                    <!-- Si 'registro' es una tupla -->
+                    <td><strong>Fecha:</strong> {{ registro[0] }}</td> <!-- Acceso por índice -->
+                    <td><strong>Mano dominante:</strong> {{ registro[1] }}</td> <!-- Acceso por índice -->
+                    <td><strong>Promedio 1:</strong> {{ registro[2] }}</td> <!-- Acceso por índice -->
+                    <td><strong>Grado SSS:</strong> {{ registro[3] }}</td> <!-- Acceso por índice -->
+                    <td><strong>Promedio 2:</strong> {{ registro[4] }}</td> <!-- Acceso por índice -->
+                    <td><strong>Grado fss:</strong> {{ registro[5] }}</td> <!-- Acceso por índice -->
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ url_for('index') }}">Volver</a>
+</body>
+</html>

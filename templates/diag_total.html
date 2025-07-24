@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Diagnóstico Completo</title>
+    <style>
+        .form-columns { display: flex; gap: 20px; flex-wrap: wrap; }
+        .column { flex: 1; min-width: 300px; }
+        .promedio-box { margin-top: 20px; padding: 10px; border-radius: 5px; font-weight: bold; }
+    </style>
+    <script>
+        function calcularPromedios() {
+            let sum1 = 0, sum2 = 0, count1 = 11, count2 = 8;
+            for (let i = 1; i <= count1; i++) {
+                let val = parseInt(document.querySelector(`input[name="p1_${i}"]:checked`)?.value || 0);
+                sum1 += val;
+            }
+            for (let i = 1; i <= count2; i++) {
+                let val = parseInt(document.querySelector(`input[name="p2_${i}"]:checked`)?.value || 0);
+                sum2 += val;
+            }
+
+            let prom1 = (sum1 / count1).toFixed(2);
+            let prom2 = (sum2 / count2).toFixed(2);
+
+            document.getElementById("promedioP1").innerText = prom1;
+            document.getElementById("promedioP2").innerText = prom2;
+
+            document.getElementById("prom1").value = prom1;
+            document.getElementById("prom2").value = prom2;
+
+            // Clasificación parte 1
+            let box1 = document.getElementById("boxP1");
+            let grado1 = "";
+            if (prom1 >= 1 && prom1 < 2) { grado1 = "LEVE"; box1.style.backgroundColor = "green"; }
+            else if (prom1 >= 2 && prom1 <= 3) { grado1 = "MODERADO"; box1.style.backgroundColor = "yellow"; }
+            else if (prom1 > 3) { grado1 = "GRAVE"; box1.style.backgroundColor = "red"; }
+            box1.innerText = "Parte 1: " + grado1;
+            document.getElementById("gradoP1").value = grado1;
+
+            // Clasificación parte 2
+            let box2 = document.getElementById("boxP2");
+            let grado2 = "";
+            if (prom2 >= 1 && prom2 < 2) { grado2 = "LEVE"; box2.style.backgroundColor = "green"; }
+            else if (prom2 >= 2 && prom2 <= 3) { grado2 = "MODERADO"; box2.style.backgroundColor = "yellow"; }
+            else if (prom2 > 3) { grado2 = "GRAVE"; box2.style.backgroundColor = "red"; }
+            box2.innerText = "Parte 2: " + grado2;
+            document.getElementById("gradoP2").value = grado2;
+        }
+    </script>
+</head>
+<body>
+    <h2>Cuestionario Boston CTS (Completo)</h2>
+
+    <form method="post" action="{{ url_for('diag_total') }}">
+        <h3>Parte 1: Severidad de los síntomas</h3>
+        <div class="form-columns">
+            {% for i in range(1, 12) %}
+                <div class="column">
+                    <label><strong>P{{ i }}</strong>: Descripción de la pregunta {{ i }}</label><br>
+                    {% for val in range(1, 6) %}
+                        <label>
+                            <input type="radio" name="p1_{{ i }}" value="{{ val }}" onchange="calcularPromedios()"> {{ val }}
+                        </label>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="promedio-box" id="boxP1">Parte 1: Sin calificación</div>
+        <div>Promedio Parte 1: <span id="promedioP1">0.00</span></div>
+
+        <h3>Parte 2: Función de la mano</h3>
+        <div class="form-columns">
+            {% for i in range(1, 9) %}
+                <div class="column">
+                    <label><strong>P{{ i }}</strong>: Descripción de la actividad {{ i }}</label><br>
+                    {% for val in range(1, 6) %}
+                        <label>
+                            <input type="radio" name="p2_{{ i }}" value="{{ val }}" onchange="calcularPromedios()"> {{ val }}
+                        </label>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="promedio-box" id="boxP2">Parte 2: Sin calificación</div>
+        <div>Promedio Parte 2: <span id="promedioP2">0.00</span></div>
+
+        <!-- Campos ocultos -->
+        <input type="hidden" id="prom1" name="promedioP1">
+        <input type="hidden" id="prom2" name="promedioP2">
+        <input type="hidden" id="gradoP1" name="gradosP1">
+        <input type="hidden" id="gradoP2" name="gradosP2">
+
+        <br>
+        <button type="submit">Registrar Diagnóstico Completo</button>
+        <a href="{{ url_for('opcion') }}"><button type="button">Cancelar</button></a>
+    </form>
+</body>
+</html>

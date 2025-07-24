@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Ejercicio Flexión y Extensión</title>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding-top: 50px; }
+        .counter { font-size: 2em; margin: 20px; }
+        .action { font-size: 1.5em; margin: 10px; color: #333; }
+    </style>
+</head>
+<body>
+    <h1>Ejercicio Flexión y Extensión de Dedos</h1>
+    <div class="action" id="action">Esperando detección...</div>
+    <div class="counter">Flexiones: <span id="flexion_count">0</span></div>
+    <div class="counter">Extensiones: <span id="extension_count">0</span></div>
+
+    <script>
+        const socket = io();
+
+        socket.on('connect', () => {
+            console.log('Conectado al servidor');
+        });
+
+        socket.on('update_counts', data => {
+            document.getElementById('flexion_count').textContent = data.flexion_count;
+            document.getElementById('extension_count').textContent = data.extension_count;
+            document.getElementById('action').textContent = data.direction === 'down' ? "Flexionar" : "Extender";
+        });
+    </script>
+</body>
+</html>

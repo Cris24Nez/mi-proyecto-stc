@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Rutina de Rehabilitación #1 - Flexión de la muñeca</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- MQTT.js y Chart.js -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      padding: 40px;
+      font-family: 'Roboto', sans-serif;
+      background-image: url('/static/img/fdp7.jpg');
+      background-size: cover;
+      background-color: rgba(255, 255, 255, 0.6);
+      background-blend-mode: lighten;
+    }
+    .dedos-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: left;
+    }
+    .dedo-section {
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 10px;
+      width: 650px;
+      background-color: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    button[type="button"] {
+      background-color: #6f42c1;
+      color: white;
+    }
+    button[type="button"]:hover {
+      background-color: #5a379f;
+    }
+    .volver-link {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Enlace Volver -->
+  <div class="volver-link">
+    <a href="{{ url_for('opcion') }}" class="btn btn-outline-secondary">← Volver</a>
+  </div>
+
+  <h2><strong>Rutina de Rehabilitación #1 - Flexión de la muñeca</strong></h2>
+  <p><strong>Instrucción:</strong> Presione “Flexionar” para iniciar el movimiento y contar el tiempo. Luego presione “Extensionar” para detener el cronómetro.</p>
+
+  <form id="formulario-diagnostico">
+    <div class="mb-3">
+      <label for="paciente-select" class="form-label">ID paciente:</label>
+      <select id="paciente-select" class="form-select" required onchange="cargarGrafico(this.value)">
+        {% for paciente in pacientes %}
+          <option value="{{ paciente[0] }}">{{ paciente[1] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div id="dedos-container" class="dedos-grid"></div>
+  </form>
+
+  <div class="mt-4 text-center">
+    <button type="button" class="btn btn-success" onclick="enviarDatos()">Enviar Datos</button>
+  </div>
+  
+  <div class="mt-5">
+    <h4 class="text-center">Progreso del Tiempo de Rehabilitación</h4>
+    <canvas id="graficoProgreso" height="100"></canvas>
+  </div>
+
+  <script>
+    const tipo_movimientos = [
+      { nombre: "Flexionar", ruta: "flexionar" }
+    ];
+
+    const container = document.getElementById('dedos-container');
+
+    const options = {
+      clean: true,
+      connectTimeout: 4000,
+      clientId: 'webClient_' + Math.random().toString(16).substr(2, 8),
+      username: 'Chris',
+      password: 'HiveMq25proy.',
+      reconnectPeriod: 1000,
+    };
+
+    const client = mqtt.connect('wss://1e4496b59d6543c6b38d74b2c55cb32d.s1.eu.hivemq.cloud:8884/mqtt', options);
+
+    client.on('connect', () => {
+      console.log('✅ Conectado a HiveMQ desde Web');
+    });
+
+    client.on('error', (err) => {
+      console.error('❌ Error de conexión MQTT:', err);
+    });
+
+    let startTime = null;
+    let timerInterval = null;
+    const tiempos = {};
+
+    tipo_movimientos.forEach(tipo_movimiento => {
+      const section = document.createElement("div");
+      section.className = "dedo-section";
+
+      section.innerHTML = `
+        <h4>${tipo_movimiento.nombre}</h4>
+
+        <div class="mb-3">
+          <strong>Tiempo de flexión:</strong> <span id="timer-${tipo_movimiento.ruta}">00:00</span>
+        </div>
+
+        <div class="mb-2">
+          <label class="form-label">Observación:</label>
+          <textarea id="observacion-${tipo_movimiento.ruta}" rows="2" class="form-control"></textarea>
+        </div>
+
+        <div class="d-flex justify-content-between">
+          <div>
+            <button type="button" class="btn me-2" onclick="empezarFlexion('${tipo_movimiento.ruta}')">Flexionar</button>
+            <button type="button" class="btn me-2" onclick="terminarFlexion('${tipo_movimiento.ruta}')">Extensionar</button>
+          </div>
+          <div>
+            <button type="button" class="btn btn-warning" onclick="reiniciarTimer('${tipo_movimiento.ruta}')">Reiniciar</button>
+          </div>
+        </div>
+      `;
+
+      container.appendChild(section);
+    });
+
+    function empezarFlexion(ruta) {
+      publicar('flexionarmuneca', 'FLEXIONAR');
+      iniciarTimer(ruta);
+    }
+
+    function terminarFlexion(ruta) {
+      publicar('extendermuneca', 'EXTENSIONAR');
+      detenerTimer(ruta);
+    }
+
+    function iniciarTimer(ruta) {
+      const timerDisplay = document.getElementById(`timer-${ruta}`);
+      startTime = Date.now();
+
+      timerInterval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const segundos = Math.floor(elapsed / 1000);
+        const minutos = Math.floor(segundos / 60);
+        const segRestantes = segundos % 60;
+
+        timerDisplay.textContent = `${minutos.toString().padStart(2, '0')}:${segRestantes.toString().padStart(2, '0')}`;
+      }, 1000);
+    }
+
+    function detenerTimer(ruta) {
+      if (startTime) {
+        const tiempoTotal = Math.floor((Date.now() - startTime) / 1000);
+        tiempos[ruta] = tiempoTotal;
+      }
+      clearInterval(timerInterval);
+      timerInterval = null;
+      startTime = null;
+    }
+
+    function reiniciarTimer(ruta) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      startTime = null;
+
+      const timerDisplay = document.getElementById(`timer-${ruta}`);
+      timerDisplay.textContent = "00:00";
+      tiempos[ruta] = 0;
+    }
+
+    function publicar(topic, mensaje) {
+      const fullTopic = `motor/${topic}`;
+      client.publish(fullTopic, mensaje, { qos: 1 }, (error) => {
+        if (error) {
+          console.error('❌ Error al publicar:', error);
+        } else {
+          console.log(`📤 Publicado: ${fullTopic} → ${mensaje}`);
+        }
+      });
+    }
+
+    function enviarDatos() {
+      const idPaciente = document.getElementById("paciente-select").value;
+
+      const datos = tipo_movimientos.map(tipo_movimiento => {
+        const ruta = tipo_movimiento.ruta;
+        return {
+          tipo_movimiento: tipo_movimiento.nombre,
+          tiempo: tiempos[ruta] || 0,
+          observacion: document.getElementById(`observacion-${ruta}`).value
+        };
+      });
+
+      fetch("/guardar_rehabilitacion1", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ id_paciente: idPaciente, datos: datos })
+      })
+      .then(response => {
+        if (response.ok) {
+          alert("Datos enviados correctamente.");
+          cargarGrafico(idPaciente); // Actualizar la gráfica
+        } else {
+          alert("Error al enviar los datos.");
+        }
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        alert("Error al conectar con el servidor.");
+      });
+    }
+
+    function cargarGrafico(idPaciente) {
+      fetch(`/api/rehabilitacion1/${idPaciente}`)
+        .then(response => response.json())
+        .then(datos => {
+          const fechas = datos.map(d => d.fecha);
+          const tiempos = datos.map(d => d.tiempo);
+
+          const ctx = document.getElementById('graficoProgreso').getContext('2d');
+          new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: fechas,
+              datasets: [{
+                label: 'Tiempo de flexión (segundos)',
+                data: tiempos,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3
+              }]
+            },
+            options: {
+              responsive: true,
+              scales: {
+                x: {
+                  title: { display: true, text: 'Fecha' }
+                },
+                y: {
+                  title: { display: true, text: 'Tiempo (s)' },
+                  beginAtZero: true
+                }
+              }
+            }
+          });
+        })
+        .catch(error => {
+          console.error("Error al cargar datos del gráfico:", error);
+        });
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrar Diagnóstico</title>
+</head>
+<body>
+    <h2>Registrar nuevo diagnóstico</h2>
+
+   <form method="POST" action="">
+    <!-- Campo oculto, opcional -->
+    <label for="fecha">Fecha:</label><br>
+    <input type="date" id="fecha" name="fecha" required><br><br>
+
+    <label for="resultado">Resultado del diagnóstico:</label><br>
+    <textarea id="resultado" name="resultado" rows="4" cols="50" required></textarea><br><br>
+
+    <label for="observaciones">Observaciones:</label><br>
+    <textarea id="observaciones" name="observaciones" rows="4" cols="50"></textarea><br><br>
+
+    <button type="submit">Guardar diagnóstico</button>
+</form>
+</body>
+</html>
