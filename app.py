@@ -190,6 +190,11 @@ def eliminarpaciente():
             return redirect(url_for('eliminarpaciente'))
 
     return render_template('eliminarpaciente.html', paciente=paciente)
+
+@app.route('/sensado')
+def sensado(): 
+    return render_template('sensado.html')
+
 #diagnostico
 @app.route('/diagnostico')
 def diagnostico():
@@ -1131,3 +1136,4 @@ def nuevo_mantenimiento():
 
 if __name__ == '__main__':
     app.run(debug=True)
+

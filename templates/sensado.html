@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Sensado de motores</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- MQTT.js y Chart.js -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      padding: 40px;
+      font-family: 'Roboto', sans-serif;
+      background-image: url('/static/img/fdp7.jpg');
+      background-size: cover;
+      background-color: rgba(255, 255, 255, 0.6);
+      background-blend-mode: lighten;
+    }
+    .dedos-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: left;
+    }
+    .dedo-section {
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 10px;
+      width: 250px;
+      background-color: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    button[type="button"] {
+      background-color: #6f42c1;
+      color: white;
+    }
+    button[type="button"]:hover {
+      background-color: #5a379f;
+    }
+    .volver-link {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+    }
+    .pasos-input
+    {
+      width: 80%;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="volver-link">
+    <a href="{{ url_for('opcion') }}" class="btn btn-outline-secondary">← Volver</a>
+  </div>
+
+  <h2><strong>Sensado de motores</strong></h2>
+  <p><strong>Configuración:</strong> Inserte la cantidad de pasos adecuados para el paciente</p>
+
+    <!-- Contenedor para dedos -->
+    <div id="dedos-container" class="dedos-grid">
+      <!-- Dedos se generan aquí -->
+    </div>
+  </form>
+
+  <script>
+    const dedos = [
+      { nombre: "Pulgar", ruta: "pulgar" },
+      { nombre: "Índice", ruta: "indice" },
+      { nombre: "Medio", ruta: "medio" },
+      { nombre: "Anular", ruta: "anular" },
+      { nombre: "Meñique", ruta: "menique" }
+    ];
+
+    const container = document.getElementById('dedos-container');
+
+    // ========= CONEXIÓN MQTT =========
+    const options = {
+      clean: true,
+      connectTimeout: 4000,
+      clientId: 'webClient_' + Math.random().toString(16).substr(2, 8),
+      username: 'Chris',
+      password: 'HiveMq25proy.',
+      reconnectPeriod: 1000,
+    };
+
+    const client = mqtt.connect('wss://1e4496b59d6543c6b38d74b2c55cb32d.s1.eu.hivemq.cloud:8884/mqtt', options);
+
+    client.on('connect', () => {
+      console.log('✅ Conectado a HiveMQ desde Web');
+    });
+
+    client.on('error', (err) => {
+      console.error('❌ Error de conexión MQTT:', err);
+    });
+
+    // Generar secciones para cada dedo con controles y botones
+    dedos.forEach(dedo => {
+      const section = document.createElement("div");
+      section.className = "dedo-section";
+
+      section.innerHTML = `
+        <h4>${dedo.nombre}</h4>
+        <input type = "number" id = "pasos-${dedo.ruta}" class = "form-control pasos-input" min="1" max="300" value ="50">
+        <div id="box-${dedo.ruta}" class ="motor-box"></div>
+        <div class="d-flex justify-content-between mt-2">
+          <button type="button" class="btn me-2" onclick="publicar('${dedo.ruta}', 'ELEVAR')">Elevar</button>
+          <button type="button" class="btn" onclick="publicar('${dedo.ruta}', 'BAJAR')">Bajar</button>
+        </div>
+      `;
+
+      container.appendChild(section);
+    });
+
+    function publicar(topic, mensaje) {
+      const fullTopic = `motor/${topic}`;
+
+      client.publish(fullTopic, mensaje, { qos: 1 }, (error) => {
+        if (error) {
+          console.error('❌ Error al publicar:', error);
+        } else {
+          console.log(`📤 Publicado: ${fullTopic} → ${mensaje}`);
+        }
+      });
+      
+      function empezarElevacion(ruta) {
+      const pasos = document.getElementById(`pasos-${ruta}`).value;
+      publicar('${dedo.ruta}', `ELEVAR:${pasos}`);
+      }
+
+      function terminarElevacion(ruta) {
+      const pasos = document.getElementById(`pasos-${ruta}`).value;
+      publicar('${dedo.ruta}', `BAJAR:${pasos}`);
+      }
+
+    }
+  </script>
+
+</body>
+</html>
